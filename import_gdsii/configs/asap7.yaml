@@ -29,6 +29,9 @@ Gate:
   type: 0
   z: 0.03
   height: 0.056
+  wrap_around:
+    layer: Fin
+    z_extend: 0.01  # extend this far below the fin base into the STI/substrate
 
 SDT:
   index: 88

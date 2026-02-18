@@ -177,8 +177,58 @@ def create_material(name, color):
     return mat
 
 
-def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=1e-6, crop_box=None):
-    """Create extruded geometry for a specific GDS layer"""
+def _extract_polygons(gds_path, layer, unit, crop_box):
+    """Read, flatten, and optionally crop GDS polygons for a single layer.
+
+    Returns a plain list of gdstk.Polygon objects suitable for use as
+    boolean operands (e.g. as wrap_polygons in create_extruded_layer).
+    """
+    library = gdstk.read_gds(gds_path, unit=unit, filter={layer})
+    merged = gdstk.Cell("_EXTRACT")
+    for cell in library.top_level():
+        flat = cell.flatten()
+        merged.add(*flat.polygons)
+        for path in flat.paths:
+            merged.add(*path.to_polygons())
+    if crop_box is not None:
+        x_min, y_min, x_max, y_max = crop_box
+        crop_rect = gdstk.rectangle((x_min, y_min), (x_max, y_max))
+        cropped = []
+        for poly in merged.polygons:
+            cropped.extend(gdstk.boolean(poly, crop_rect, 'and'))
+        return cropped
+    return list(merged.polygons)
+
+
+def _add_extruded_polygon(polygon, z_bot, z_top, all_verts, all_faces, v_offset):
+    """Append one extruded polygon's verts and faces; returns updated v_offset."""
+    points = polygon.points
+    n = len(points)
+    if n < 3:
+        return v_offset
+    bottom = np.column_stack([points, np.full(n, z_bot)])
+    top    = np.column_stack([points, np.full(n, z_top)])
+    all_verts.extend(np.vstack([bottom, top]).tolist())
+    all_faces.append([v_offset + j for j in range(n)])
+    all_faces.append([v_offset + 2*n-1-j for j in range(n)])
+    all_faces.extend([[v_offset + j, v_offset + (j+1)%n,
+                       v_offset + (j+1)%n + n, v_offset + j + n]
+                      for j in range(n)])
+    return v_offset + 2 * n
+
+
+def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=1e-6, crop_box=None,
+                          wrap_polygons=None, wrap_z_bottom=None):
+    """Create extruded geometry for a specific GDS layer.
+
+    When wrap_polygons and wrap_z_bottom are supplied (wrap_around feature),
+    the layer polygons are split into two groups via boolean intersection:
+      - regions that do NOT overlap wrap_polygons → extruded at the normal z/height
+      - regions that DO overlap wrap_polygons     → extruded from wrap_z_bottom to
+                                                    z+height, so the layer visually
+                                                    penetrates through the reference
+                                                    geometry (e.g. gate through fins)
+    """
     # Read and filter GDS
     library = gdstk.read_gds(gds_path, unit=unit, filter={layer})
 
@@ -186,11 +236,7 @@ def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=
     merged_cell = gdstk.Cell("MERGED")
     for cell in library.top_level():
         flattened = cell.flatten()
-
-        # Add polygons
         merged_cell.add(*flattened.polygons)
-
-        # Convert paths to polygons
         for path in flattened.paths:
             merged_cell.add(*path.to_polygons())
 
@@ -198,15 +244,9 @@ def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=
     if crop_box is not None:
         x_min, y_min, x_max, y_max = crop_box
         crop_rect = gdstk.rectangle((x_min, y_min), (x_max, y_max))
-
-        # Filter polygons that intersect with crop region
         cropped_polygons = []
         for polygon in merged_cell.polygons:
-            # Use boolean AND operation to get intersection
-            result = gdstk.boolean(polygon, crop_rect, "and")
-            cropped_polygons.extend(result)
-
-        # Replace with cropped polygons
+            cropped_polygons.extend(gdstk.boolean(polygon, crop_rect, "and"))
         merged_cell = gdstk.Cell("MERGED")
         merged_cell.add(*cropped_polygons)
 
@@ -215,33 +255,21 @@ def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=
         print(f"⚠ Layer {name}: No geometry found")
         return None
 
-    # Pre-allocate arrays for better performance
     all_verts = []
     all_faces = []
     v_offset = 0
 
-    for polygon in merged_cell.polygons:
-        points = polygon.points
-        n = len(points)
-
-        if n < 3:
-            continue
-
-        # Build vertices
-        bottom = np.column_stack([points, np.full(n, z)])
-        top = np.column_stack([points, np.full(n, z + height)])
-        verts = np.vstack([bottom, top])
-
-        all_verts.extend(verts.tolist())
-
-        # Build faces
-        all_faces.append([v_offset + j for j in range(n)])
-        all_faces.append([v_offset + 2*n-1-j for j in range(n)])
-        all_faces.extend([[v_offset + j, v_offset + (j+1)%n, 
-                          v_offset + (j+1)%n + n, v_offset + j + n] 
-                         for j in range(n)])
-
-        v_offset += 2 * n
+    if wrap_polygons:
+        # Split: regions that cross the reference layer get extended z; others stay normal
+        polys_normal = gdstk.boolean(merged_cell.polygons, wrap_polygons, 'not')
+        polys_wrap   = gdstk.boolean(merged_cell.polygons, wrap_polygons, 'and')
+        for poly in polys_normal:
+            v_offset = _add_extruded_polygon(poly, z, z + height, all_verts, all_faces, v_offset)
+        for poly in polys_wrap:
+            v_offset = _add_extruded_polygon(poly, wrap_z_bottom, z + height, all_verts, all_faces, v_offset)
+    else:
+        for polygon in merged_cell.polygons:
+            v_offset = _add_extruded_polygon(polygon, z, z + height, all_verts, all_faces, v_offset)
 
     # Create mesh
     mesh = bpy.data.meshes.new(name=f"M{name}")
@@ -583,6 +611,23 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
                     continue
 
                 layer_cfg = color_file.get('layers', {}).get(layer_name, {})
+
+                # Resolve wrap_around: extract reference layer polygons so the
+                # gate (or any other layer) can be split at fin/reference boundaries
+                wrap_polygons = None
+                wrap_z_bottom = None
+                if 'wrap_around' in data:
+                    wa = data['wrap_around']
+                    target_name = wa['layer']
+                    z_extend = wa.get('z_extend', 0.0) * self.z_scale
+                    target_data = layerstack.get(target_name)
+                    if target_data:
+                        target_layer = (target_data['index'], target_data['type'])
+                        wrap_polygons = _extract_polygons(filepath, target_layer, self.unit_scale, crop_box)
+                        wrap_z_bottom = target_data['z'] * self.z_scale - z_extend
+                    else:
+                        print(f"⚠ wrap_around: layer '{target_name}' not found in stack, skipping wrap for {layer_name}")
+
                 obj = create_extruded_layer(
                     self.report,
                     filepath,
@@ -592,7 +637,9 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
                     layer_name,
                     layer_cfg,
                     unit=self.unit_scale,
-                    crop_box=crop_box
+                    crop_box=crop_box,
+                    wrap_polygons=wrap_polygons,
+                    wrap_z_bottom=wrap_z_bottom,
                 )
 
                 if obj is not None:
