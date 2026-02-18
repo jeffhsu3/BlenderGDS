@@ -5,7 +5,7 @@ endif
 
 BLENDER_DIR := $(dir $(BLENDER_EXE))
 BLENDER_VERSION := $(shell $(BLENDER_EXE) --version | head -n 1 | awk '{print substr($$2, 1, 3)}')
-PYTHON_EXE := $(shell find $(BLENDER_DIR) -type f -name "python3*" | head -n 1)
+PYTHON_EXE := $(shell $(BLENDER_EXE) --background --python-expr "import sys; print(sys.executable)" 2>/dev/null | grep "^/")
 
 PIPMODULES := gdstk numpy pyyaml
 
