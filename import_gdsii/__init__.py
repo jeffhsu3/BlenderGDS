@@ -57,6 +57,11 @@ PDK_CONFIGS = {
         'config_path': 'configs/gf180mcu.yaml',
         'color_path': 'configs/colors/gf180mcu/'
     },
+    'ASAP7': {
+        'name': 'ASAP7 7nm FinFET PDK',
+        'config_path': 'configs/asap7.yaml',
+        'color_path': 'configs/colors/asap7/'
+    },
 }
 
 
@@ -294,6 +299,7 @@ class GDSIIPreImportDialog(bpy.types.Operator):
             ('IHP_SG13CMOS5L', "IHP Open PDK SG13CMOS5L", "IHP SG13CMOS5L 130nm CMOS5L process"),
             ('SKY130', "SkyWater SKY130 PDK", "SkyWater SKY130 130nm process"),
             ('GF180MCU', "GlobalFoundries GF180MCU PDK", "GlobalFoundries GF180MCU 180nm process"),
+            ('ASAP7', "ASAP7 7nm FinFET PDK", "ASAP7 7nm FinFET research PDK"),
         ],
         default='IHP_SG13G2',
     )
@@ -507,12 +513,12 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
             use_custom = getattr(context.scene, 'gdsii_use_custom_config', False)
 
             # Determine config file path
+            pdk_info = PDK_CONFIGS.get(pdk_selection, {})
+            addon_dir = Path(__file__).parent
             if use_custom and config_path:
                 yamlfile = Path(config_path)
             else:
                 # Use built-in PDK config
-                pdk_info = PDK_CONFIGS.get(pdk_selection, {})
-                addon_dir = Path(__file__).parent
                 yamlfile = addon_dir / pdk_info.get('config_path', 'configs/ihp-sg13g2.yaml')
 
             # Load layer stack configuration
@@ -560,7 +566,6 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
             if self.setup_scene:
                 setup_chip_scene(chip_width, chip_height, collection)
 
-            addon_dir = Path(__file__).parent
             colorfile = addon_dir / pdk_info.get('color_path', 'configs/colors/ihp-sg13g2') / f"{self.color_scheme}.yaml"
             color_file = yaml.safe_load(colorfile.read_text(encoding='utf-8'))
 
