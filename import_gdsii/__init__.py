@@ -17,6 +17,9 @@ bl_info = {
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
 from bpy_extras.io_utils import ImportHelper
+from bpy_extras import view3d_utils
+import blf
+from mathutils import Vector
 import os
 from pathlib import Path
 
@@ -296,6 +299,10 @@ def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=
 
     obj = bpy.data.objects.new(name=f"L{name}", object_data=mesh)
     bpy.context.collection.objects.link(obj)
+
+    # Tag so the layer panel can identify this object
+    obj["gdsii_layer"] = True
+    obj["gdsii_layer_name"] = name
 
     # Apply material
     mat = create_material(f"Mat_{name}", color)
@@ -688,6 +695,133 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
 
 
 # ============================================================================
+# LAYER MANAGEMENT PANEL
+# ============================================================================
+
+_label_draw_handle = None
+
+
+def _get_gds_objects(context):
+    """Return GDS layer objects in the active collection, sorted by layer name."""
+    col = context.view_layer.active_layer_collection.collection
+    objs = [obj for obj in col.objects if obj.get("gdsii_layer")]
+    return sorted(objs, key=lambda o: o.get("gdsii_layer_name", o.name))
+
+
+def _draw_layer_labels():
+    """SpaceView3D POST_PIXEL draw handler: label each visible GDS layer."""
+    context = bpy.context
+    if not context.scene.get("gdsii_show_labels"):
+        return
+    region = context.region
+    rv3d = context.region_data
+    if region is None or rv3d is None:
+        return
+
+    font_id = 0
+    if bpy.app.version >= (4, 0, 0):
+        blf.size(font_id, 12)
+    else:
+        blf.size(font_id, 12, 72)
+    blf.color(font_id, 1.0, 1.0, 1.0, 0.9)
+
+    col = context.view_layer.active_layer_collection.collection
+    for obj in col.objects:
+        if not obj.get("gdsii_layer") or obj.hide_viewport:
+            continue
+        # World-space bounding-box centre
+        bbox_world = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+        centre = sum(bbox_world, Vector()) / 8.0
+        co_2d = view3d_utils.location_3d_to_region_2d(region, rv3d, centre)
+        if co_2d is None:
+            continue
+        blf.position(font_id, co_2d.x + 6, co_2d.y + 6, 0)
+        blf.draw(font_id, obj.get("gdsii_layer_name", obj.name))
+
+
+class GDSII_OT_remove_layer(bpy.types.Operator):
+    """Remove this GDS layer from the scene"""
+    bl_idname = "gdsii.remove_layer"
+    bl_label = "Remove Layer"
+    bl_options = {'UNDO'}
+
+    obj_name: StringProperty()
+
+    def execute(self, context):
+        obj = bpy.data.objects.get(self.obj_name)
+        if obj:
+            mesh = obj.data
+            bpy.data.objects.remove(obj, do_unlink=True)
+            if mesh and mesh.users == 0:
+                bpy.data.meshes.remove(mesh)
+        return {'FINISHED'}
+
+
+class GDSII_OT_show_all_layers(bpy.types.Operator):
+    """Show all GDS layers in the active collection"""
+    bl_idname = "gdsii.show_all_layers"
+    bl_label = "Show All"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        for obj in _get_gds_objects(context):
+            obj.hide_viewport = False
+        return {'FINISHED'}
+
+
+class GDSII_OT_hide_all_layers(bpy.types.Operator):
+    """Hide all GDS layers in the active collection"""
+    bl_idname = "gdsii.hide_all_layers"
+    bl_label = "Hide All"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        for obj in _get_gds_objects(context):
+            obj.hide_viewport = True
+        return {'FINISHED'}
+
+
+class GDSII_PT_layers(bpy.types.Panel):
+    """Sidebar panel for GDS layer visibility and labels"""
+    bl_label = "GDS Layers"
+    bl_idname = "GDSII_PT_layers"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'GDS'
+
+    def draw(self, context):
+        layout = self.layout
+        col_name = context.view_layer.active_layer_collection.collection.name
+
+        # Collection name + bulk actions
+        row = layout.row()
+        row.label(text=col_name, icon='OUTLINER_COLLECTION')
+        row = layout.row(align=True)
+        row.operator("gdsii.show_all_layers", icon='HIDE_OFF')
+        row.operator("gdsii.hide_all_layers", icon='HIDE_ON')
+
+        # Viewport labels toggle
+        layout.prop(context.scene, "gdsii_show_labels",
+                    text="Show Labels", icon='FONT_DATA')
+
+        layout.separator()
+
+        # Per-layer rows
+        gds_objs = _get_gds_objects(context)
+        if not gds_objs:
+            layout.label(text="No GDS layers in active collection", icon='INFO')
+            return
+
+        for obj in gds_objs:
+            row = layout.row(align=True)
+            eye_icon = 'HIDE_OFF' if not obj.hide_viewport else 'HIDE_ON'
+            row.prop(obj, "hide_viewport", text="", icon=eye_icon, emboss=False)
+            row.label(text=obj.get("gdsii_layer_name", obj.name))
+            op = row.operator("gdsii.remove_layer", text="", icon='X')
+            op.obj_name = obj.name
+
+
+# ============================================================================
 # MENU INTEGRATION
 # ============================================================================
 
@@ -705,15 +839,25 @@ def register_properties():
     bpy.types.Scene.gdsii_pdk_selection = StringProperty(default='IHP_SG13G2')
     bpy.types.Scene.gdsii_config_path = StringProperty(default='')
     bpy.types.Scene.gdsii_use_custom_config = BoolProperty(default=False)
+    bpy.types.Scene.gdsii_show_labels = BoolProperty(
+        name="Show Labels",
+        description="Draw layer names in the 3D viewport",
+        default=False,
+    )
 
 def unregister_properties():
     del bpy.types.Scene.gdsii_pdk_selection
     del bpy.types.Scene.gdsii_config_path
     del bpy.types.Scene.gdsii_use_custom_config
+    del bpy.types.Scene.gdsii_show_labels
 
 classes = (
     GDSIIPreImportDialog,
     ImportGDSII,
+    GDSII_OT_remove_layer,
+    GDSII_OT_show_all_layers,
+    GDSII_OT_hide_all_layers,
+    GDSII_PT_layers,
 )
 
 def register():
@@ -729,7 +873,17 @@ def register():
 
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
+    global _label_draw_handle
+    _label_draw_handle = bpy.types.SpaceView3D.draw_handler_add(
+        _draw_layer_labels, (), 'WINDOW', 'POST_PIXEL'
+    )
+
 def unregister():
+    global _label_draw_handle
+    if _label_draw_handle is not None:
+        bpy.types.SpaceView3D.draw_handler_remove(_label_draw_handle, 'WINDOW')
+        _label_draw_handle = None
+
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
     for cls in reversed(classes):
