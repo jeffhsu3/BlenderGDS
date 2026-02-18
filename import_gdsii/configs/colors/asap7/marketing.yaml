@@ -20,6 +20,9 @@ layers:
     color: [0.18, 0.18, 0.16, 0.95]
     metallic: 0.85
     roughness: 0.3
+  # Gate cut - clean light oxide
+  GateCut:
+    color: [0.80, 0.86, 0.90, 0.60]
 
   # SDT - warm amber-brown
   SDT:

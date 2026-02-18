@@ -22,6 +22,9 @@ layers:
     color: [0.50, 0.15, 0.80, 0.95]
     metallic: 0.8
     roughness: 0.3
+  # Gate cut - bright white/ice (crisp negative space)
+  GateCut:
+    color: [0.90, 0.95, 1.00, 0.70]
 
   # SDT - vivid coral/orange (epitaxy highlight)
   SDT:

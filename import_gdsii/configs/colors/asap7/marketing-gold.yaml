@@ -19,6 +19,9 @@ layers:
     color: [1.00, 0.30, 0.30, 0.90]
     metallic: 0.8
     roughness: 0.3
+  # Gate cut - cool blue-white oxide
+  GateCut:
+    color: [0.78, 0.88, 0.98, 0.65]
 
   SDT:
     color: [0.95, 0.60, 0.20, 0.85]

@@ -29,9 +29,17 @@ Gate:
   type: 0
   z: 0.03
   height: 0.056
+  cut_by:
+    - GateCut
   wrap_around:
     layer: Fin
     z_extend: 0.01  # extend this far below the fin base into the STI/substrate
+
+GateCut:
+  index: 10
+  type: 0
+  z: 0.03
+  height: 0.056
 
 SDT:
   index: 88

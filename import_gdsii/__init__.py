@@ -218,16 +218,15 @@ def _add_extruded_polygon(polygon, z_bot, z_top, all_verts, all_faces, v_offset)
 
 
 def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=1e-6, crop_box=None,
-                          wrap_polygons=None, wrap_z_bottom=None):
+                          cut_polygons=None, wrap_polygons=None, wrap_z_bottom=None):
     """Create extruded geometry for a specific GDS layer.
 
-    When wrap_polygons and wrap_z_bottom are supplied (wrap_around feature),
-    the layer polygons are split into two groups via boolean intersection:
-      - regions that do NOT overlap wrap_polygons → extruded at the normal z/height
-      - regions that DO overlap wrap_polygons     → extruded from wrap_z_bottom to
-                                                    z+height, so the layer visually
-                                                    penetrates through the reference
-                                                    geometry (e.g. gate through fins)
+    Processing order when optional params are supplied:
+      1. cut_polygons  – subtracted from the layer geometry first (e.g. gate cuts);
+                         the removed regions simply disappear from this layer's mesh.
+      2. wrap_polygons – the remaining geometry is then split at the boundary of the
+                         reference layer (e.g. fins) and each group is extruded at its
+                         own z range so the layer visually wraps through the reference.
     """
     # Read and filter GDS
     library = gdstk.read_gds(gds_path, unit=unit, filter={layer})
@@ -249,6 +248,12 @@ def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=
             cropped_polygons.extend(gdstk.boolean(polygon, crop_rect, "and"))
         merged_cell = gdstk.Cell("MERGED")
         merged_cell.add(*cropped_polygons)
+
+    # Subtract cut regions (e.g. gate cuts) before any further processing
+    if cut_polygons:
+        remaining = gdstk.boolean(merged_cell.polygons, cut_polygons, 'not')
+        merged_cell = gdstk.Cell("MERGED")
+        merged_cell.add(*remaining)
 
     polygon_count = len(merged_cell.polygons)
     if polygon_count == 0:
@@ -612,6 +617,18 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
 
                 layer_cfg = color_file.get('layers', {}).get(layer_name, {})
 
+                # Resolve cut_by: collect polygons to subtract from this layer
+                cut_polygons = None
+                for cut_name in data.get('cut_by', []):
+                    cut_data = layerstack.get(cut_name)
+                    if cut_data:
+                        cut_layer = (cut_data['index'], cut_data['type'])
+                        polys = _extract_polygons(filepath, cut_layer, self.unit_scale, crop_box)
+                        if polys:
+                            cut_polygons = (cut_polygons or []) + polys
+                    else:
+                        print(f"⚠ cut_by: layer '{cut_name}' not found in stack, skipping cut for {layer_name}")
+
                 # Resolve wrap_around: extract reference layer polygons so the
                 # gate (or any other layer) can be split at fin/reference boundaries
                 wrap_polygons = None
@@ -638,6 +655,7 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
                     layer_cfg,
                     unit=self.unit_scale,
                     crop_box=crop_box,
+                    cut_polygons=cut_polygons,
                     wrap_polygons=wrap_polygons,
                     wrap_z_bottom=wrap_z_bottom,
                 )
