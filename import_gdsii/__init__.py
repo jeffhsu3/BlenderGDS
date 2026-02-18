@@ -222,11 +222,22 @@ def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=
     """Create extruded geometry for a specific GDS layer.
 
     Processing order when optional params are supplied:
-      1. cut_polygons  – subtracted from the layer geometry first (e.g. gate cuts);
-                         the removed regions simply disappear from this layer's mesh.
-      2. wrap_polygons – the remaining geometry is then split at the boundary of the
-                         reference layer (e.g. fins) and each group is extruded at its
-                         own z range so the layer visually wraps through the reference.
+      1. cut_polygons  – subtracted first (XY boolean NOT); removed regions
+                         disappear from this layer's mesh entirely (e.g. gate cuts).
+      2. wrap_polygons – builds a cross-section profile that wraps the layer around
+                         a reference geometry (e.g. gate around fins):
+
+                           z+height ┌──────────────┐  ← cap (full polygon)
+                                    │              │
+                                z   ├──┬────────┬──┤  ← gate.z (dividing line)
+                                    │  │        │  │  ← walls (layer NOT ref)
+                          fin_top   │  │  ref   │  │
+                          fin_bot   │  └────────┘  │
+                         wrap_z_bot └──┘        └──┘  ← walls continue below ref
+
+                         The reference layer fills its own slot; the two z-groups
+                         together form the Ω/U cross-section without any custom
+                         3-D mesh generation.
     """
     # Read and filter GDS
     library = gdstk.read_gds(gds_path, unit=unit, filter={layer})
@@ -265,13 +276,15 @@ def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=
     v_offset = 0
 
     if wrap_polygons:
-        # Split: regions that cross the reference layer get extended z; others stay normal
-        polys_normal = gdstk.boolean(merged_cell.polygons, wrap_polygons, 'not')
-        polys_wrap   = gdstk.boolean(merged_cell.polygons, wrap_polygons, 'and')
-        for poly in polys_normal:
+        # Cap: full polygon above the reference layer (e.g. gate body above fin tops)
+        for poly in merged_cell.polygons:
             v_offset = _add_extruded_polygon(poly, z, z + height, all_verts, all_faces, v_offset)
-        for poly in polys_wrap:
-            v_offset = _add_extruded_polygon(poly, wrap_z_bottom, z + height, all_verts, all_faces, v_offset)
+        # Walls: layer polygon with reference shapes subtracted, extruded from
+        # wrap_z_bottom up to z.  This creates the side walls that run down
+        # alongside each fin, giving the Ω cross-section profile.
+        polys_walls = gdstk.boolean(merged_cell.polygons, wrap_polygons, 'not')
+        for poly in polys_walls:
+            v_offset = _add_extruded_polygon(poly, wrap_z_bottom, z, all_verts, all_faces, v_offset)
     else:
         for polygon in merged_cell.polygons:
             v_offset = _add_extruded_polygon(polygon, z, z + height, all_verts, all_faces, v_offset)
