@@ -3,166 +3,167 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # ASAP7 7nm FinFET Research PDK
-# Z-stack derived from ASAP7_for_KLayout/asap7.lyt (physical µm values)
+# Z-stack derived from ASAP7_for_KLayout/asap7.lyt, scaled 4x in Z to match
+# the 4x XY scaling of the ASAP7 GDS geometry (DATABASE MICRONS 4000).
 # GDS layer/datatype from ASAP7 PDK GDS files
 
 NWell:
   index: 1
   type: 0
-  z: -0.1
-  height: 0.1
+  z: -0.4
+  height: 0.4
 
 Fin:
   index: 2
   type: 0
   z: 0.0
-  height: 0.029
+  height: 0.116
 
 Active:
   index: 11
   type: 0
-  z: 0.03
-  height: 0.001
+  z: 0.12
+  height: 0.004
 
 Gate:
   index: 7
   type: 0
-  z: 0.03
-  height: 0.056
+  z: 0.12
+  height: 0.224
   cut_by:
     - GateCut
   wrap_around:
     layer: Fin
-    z_extend: 0.01  # extend this far below the fin base into the STI/substrate
+    z_extend: 0.04  # extend this far below the fin base into the STI/substrate
 
 GateCut:
   index: 10
   type: 0
-  z: 0.03
-  height: 0.056
+  z: 0.12
+  height: 0.224
 
 SDT:
   index: 88
   type: 0
-  z: 0.069
-  height: 0.04
+  z: 0.276
+  height: 0.16
 
 LIG:
   index: 16
   type: 0
-  z: 0.087
-  height: 0.049
+  z: 0.348
+  height: 0.196
 
 LISD:
   index: 17
   type: 0
-  z: 0.109
-  height: 0.028
+  z: 0.436
+  height: 0.112
 
 V0:
   index: 18
   type: 0
-  z: 0.137
-  height: 0.019
+  z: 0.548
+  height: 0.076
 
 M1:
   index: 19
   type: 0
-  z: 0.156
-  height: 0.0396
+  z: 0.624
+  height: 0.1584
 
 V1:
   index: 21
   type: 0
-  z: 0.1956
-  height: 0.0396
+  z: 0.7824
+  height: 0.1584
 
 M2:
   index: 20
   type: 0
-  z: 0.2352
-  height: 0.0396
+  z: 0.9408
+  height: 0.1584
 
 V2:
   index: 25
   type: 0
-  z: 0.2748
-  height: 0.036
+  z: 1.0992
+  height: 0.144
 
 M3:
   index: 30
   type: 0
-  z: 0.3108
-  height: 0.0396
+  z: 1.2432
+  height: 0.1584
 
 V3:
   index: 35
   type: 0
-  z: 0.3504
-  height: 0.036
+  z: 1.4016
+  height: 0.144
 
 M4:
   index: 40
   type: 0
-  z: 0.3864
-  height: 0.0528
+  z: 1.5456
+  height: 0.2112
 
 V4:
   index: 45
   type: 0
-  z: 0.4392
-  height: 0.048
+  z: 1.7568
+  height: 0.192
 
 M5:
   index: 50
   type: 0
-  z: 0.4872
-  height: 0.0528
+  z: 1.9488
+  height: 0.2112
 
 V5:
   index: 55
   type: 0
-  z: 0.54
-  height: 0.048
+  z: 2.16
+  height: 0.192
 
 M6:
   index: 60
   type: 0
-  z: 0.588
-  height: 0.0704
+  z: 2.352
+  height: 0.2816
 
 V6:
   index: 65
   type: 0
-  z: 0.6584
-  height: 0.064
+  z: 2.6336
+  height: 0.256
 
 M7:
   index: 70
   type: 0
-  z: 0.7224
-  height: 0.0704
+  z: 2.8896
+  height: 0.2816
 
 V7:
   index: 75
   type: 0
-  z: 0.7928
-  height: 0.064
+  z: 3.1712
+  height: 0.256
 
 M8:
   index: 80
   type: 0
-  z: 0.8568
-  height: 0.088
+  z: 3.4272
+  height: 0.352
 
 V8:
   index: 85
   type: 0
-  z: 0.9448
-  height: 0.08
+  z: 3.7792
+  height: 0.32
 
 M9:
   index: 90
   type: 0
-  z: 1.0248
-  height: 0.088
+  z: 4.0992
+  height: 0.352
