@@ -78,6 +78,32 @@ def setup_chip_scene(chip_x, chip_y, collection=None):
     target_collection = collection if collection is not None else bpy.context.collection
 
     # --------------------------
+    # RENDER ENGINE: CYCLES + GPU
+    # --------------------------
+    bpy.context.scene.render.engine = 'CYCLES'
+
+    cycles_prefs = bpy.context.preferences.addons['cycles'].preferences
+    gpu_activated = False
+    for backend in ('OPTIX', 'CUDA', 'HIP', 'METAL', 'ONEAPI'):
+        try:
+            cycles_prefs.compute_device_type = backend
+            cycles_prefs.get_devices()
+            devices = [d for d in cycles_prefs.devices if d.type != 'CPU']
+            if devices:
+                for d in cycles_prefs.devices:
+                    d.use = True
+                bpy.context.scene.cycles.device = 'GPU'
+                gpu_activated = True
+                print(f"✓ Cycles GPU: {backend} ({len(devices)} device(s))")
+                break
+        except Exception:
+            continue
+
+    if not gpu_activated:
+        bpy.context.scene.cycles.device = 'CPU'
+        print("⚠ Cycles GPU: no compatible device found, falling back to CPU")
+
+    # --------------------------
     # SETUP WORLD
     # --------------------------
     world = bpy.data.worlds.new("ChipWorld")
@@ -126,10 +152,10 @@ def setup_chip_scene(chip_x, chip_y, collection=None):
     target_collection.objects.link(chip_base)
 
     # Define vertices for a plane of correct size
-    verts = [(0, 0, -0.005),
-             (0, chip_y, -0.005),
-             (chip_x, chip_y, -0.005),
-             (chip_x, 0, -0.005)]
+    verts = [(0, 0, -1),
+             (0, chip_y, -1),
+             (chip_x, chip_y, -1),
+             (chip_x, 0, -1)]
     faces = [(0, 1, 2, 3)]
     mesh.from_pydata(verts, [], faces)
     mesh.update()
@@ -221,7 +247,7 @@ def _add_extruded_polygon(polygon, z_bot, z_top, all_verts, all_faces, v_offset)
 
 
 def create_extruded_layer(report, gds_path, z, height, layer, name, color, unit=1e-6, crop_box=None,
-                          cut_polygons=None, wrap_polygons=None, wrap_z_bottom=None):
+                          cut_polygons=None, wrap_polygons=None, wrap_z_bottom=None, offset=None):
     """Create extruded geometry for a specific GDS layer.
 
     Processing order when optional params are supplied:
@@ -583,6 +609,7 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
 
             # Setup crop box if enabled
             crop_box = None
+            crop_offset = None
             if self.use_crop:
                 # Convert to GDS units (typically micrometers)
                 crop_box = (
@@ -591,6 +618,7 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
                     self.crop_x + self.crop_width,
                     self.crop_y + self.crop_height
                 )
+                crop_offset = (self.crop_x, self.crop_y)
                 chip_width = self.crop_width
                 chip_height = self.crop_height
                 print(f"Cropping to region: X={self.crop_x}, Y={self.crop_y}, W={self.crop_width}, H={self.crop_height}")
@@ -675,6 +703,7 @@ class ImportGDSII(bpy.types.Operator, ImportHelper):
                     layer_cfg,
                     unit=self.unit_scale,
                     crop_box=crop_box,
+                    offset=crop_offset,
                     cut_polygons=cut_polygons,
                     wrap_polygons=wrap_polygons,
                     wrap_z_bottom=wrap_z_bottom,
