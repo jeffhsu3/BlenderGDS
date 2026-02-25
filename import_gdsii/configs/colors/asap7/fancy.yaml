@@ -3,113 +3,135 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Fancy
-description: Fancy color scheme - premium tech aesthetic
+description: Fancy color scheme - vivid flat aesthetic
 layers:
-  # N-well - warm amber (subtle substrate glow)
+  # NWell - deep blue (substrate)
   NWell:
-    color: [0.85, 0.65, 0.30, 0.55]
+    color: [0.10, 0.30, 0.90, 0.65]
+    metallic: 0.0
+    roughness: 1.0
 
-  # Fins - electric teal/cyan (hero nanostructures)
+  # Fins - vivid cyan (hero FinFET nanostructures)
   Fin:
-    color: [0.10, 0.80, 0.75, 0.90]
+    color: [0.05, 0.90, 0.90, 0.90]
+    metallic: 0.0
+    roughness: 1.0
 
-  # Active - neon green (thin active layer pop)
+  # Active - bright green
   Active:
-    color: [0.20, 0.90, 0.40, 0.90]
+    color: [0.10, 0.95, 0.25, 0.90]
+    metallic: 0.0
+    roughness: 1.0
 
-  # Gate - deep violet/magenta (striking contrast)
+  # Gate - vivid red
   Gate:
-    color: [0.50, 0.15, 0.80, 0.95]
-    metallic: 0.8
-    roughness: 0.3
-  # Gate cut - bright white/ice (crisp negative space)
+    color: [0.95, 0.08, 0.08, 0.95]
+    metallic: 0.0
+    roughness: 1.0
+
+  # Gate cut - bright white (crisp negative space)
   GateCut:
-    color: [0.90, 0.95, 1.00, 0.70]
+    color: [1.0, 1.0, 1.0, 0.70]
+    metallic: 0.0
+    roughness: 1.0
 
-  # SDT - vivid coral/orange (epitaxy highlight)
+  # SDT - vivid orange (source/drain epitaxy)
   SDT:
-    color: [0.95, 0.45, 0.25, 0.90]
+    color: [1.0, 0.52, 0.05, 0.90]
+    metallic: 0.0
+    roughness: 1.0
 
-  # Local interconnects - rose gold gradient
+  # Local interconnects - yellow-green (between gate-red and metal-blue)
   LIG:
-    color: [0.90, 0.55, 0.40, 1.0]
-    metallic: 0.8
+    color: [0.75, 0.95, 0.10, 1.0]
+    metallic: 0.0
+    roughness: 1.0
   LISD:
-    color: [0.88, 0.52, 0.38, 1.0]
-    metallic: 0.8
+    color: [0.65, 0.92, 0.10, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
-  # Tungsten contacts - bright copper
+  # Contacts & vias - bright white
   V0:
-    color: [0.92, 0.58, 0.35, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
-  # Metal layers - cool blue gradient (sleek, modern)
+  # Metal layers - vivid rainbow spectrum (Blue → Violet → Red → Orange → Yellow → Chartreuse → Cyan → Pink → Gold)
   M1:
-    color: [0.25, 0.45, 0.80, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [0.15, 0.40, 1.0, 1.0]        # Blue
+    metallic: 0.0
+    roughness: 1.0
   V1:
-    color: [0.85, 0.48, 0.32, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
   M2:
-    color: [0.30, 0.50, 0.85, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [0.55, 0.10, 1.0, 1.0]        # Violet
+    metallic: 0.0
+    roughness: 1.0
   V2:
-    color: [0.82, 0.50, 0.34, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
   M3:
-    color: [0.35, 0.55, 0.88, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [1.0, 0.08, 0.08, 1.0]        # Red
+    metallic: 0.0
+    roughness: 1.0
   V3:
-    color: [0.80, 0.52, 0.36, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
   M4:
-    color: [0.40, 0.60, 0.90, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [1.0, 0.52, 0.05, 1.0]        # Orange
+    metallic: 0.0
+    roughness: 1.0
   V4:
-    color: [0.78, 0.54, 0.38, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
   M5:
-    color: [0.45, 0.65, 0.92, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [1.0, 0.95, 0.05, 1.0]        # Yellow
+    metallic: 0.0
+    roughness: 1.0
   V5:
-    color: [0.76, 0.56, 0.40, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
   M6:
-    color: [0.50, 0.70, 0.94, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [0.40, 0.95, 0.08, 1.0]        # Chartreuse
+    metallic: 0.0
+    roughness: 1.0
   V6:
-    color: [0.74, 0.58, 0.42, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
   M7:
-    color: [0.55, 0.74, 0.95, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [0.05, 0.88, 0.88, 1.0]        # Cyan
+    metallic: 0.0
+    roughness: 1.0
   V7:
-    color: [0.72, 0.60, 0.44, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
   M8:
-    color: [0.60, 0.78, 0.96, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [1.0, 0.22, 0.68, 1.0]        # Pink
+    metallic: 0.0
+    roughness: 1.0
   V8:
-    color: [0.70, 0.62, 0.46, 1.0]
-    metallic: 0.8
+    color: [1.0, 1.0, 1.0, 1.0]
+    metallic: 0.0
+    roughness: 1.0
 
-  # Hero top metal - bright cyan
+  # Top metal - gold (bond-pad layer, visually distinct)
   M9:
-    color: [0.65, 0.82, 0.98, 1.0]
-    metallic: 0.8
-    roughness: 0.3
+    color: [1.0, 0.78, 0.10, 1.0]        # Gold
+    metallic: 0.0
+    roughness: 1.0
