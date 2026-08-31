@@ -1,0 +1,190 @@
+# SPDX-FileCopyrightText: 2026 Jeff Hsu <jeffhsu3@gmail.com>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# ASAP7 7nm FinFET Research PDK
+# Z-stack derived from ASAP7_for_KLayout/asap7.lyt, in physical µm.
+#
+# These z values expect a GDS whose XY is also physical µm, which is what the
+# default Unit Scale of 1e-6 gives. A 1x layout then lines up with the stack:
+# a 7 nm fin stands 29 nm tall, gates are 20 nm long on a 54 nm pitch.
+#
+# The ASU releases of ASAP7 are drawn 4x oversized (DATABASE MICRONS 4000).
+# Those need Unit Scale 4e-6 in the import dialog, which scales XY back down
+# onto this stack. Do not scale the z values here instead — that would break
+# every 1x layout.
+#
+# GDS layer/datatype from ASAP7 PDK GDS files
+
+pdk_config:
+  name: ASAP7 7nm FinFET PDK
+  description: ASAP7 7nm FinFET research PDK
+  def_color: realistic
+
+NWell:
+  index: 1
+  type: 0
+  z: -0.1
+  height: 0.1
+
+Fin:
+  index: 2
+  type: 0
+  z: 0.0
+  height: 0.029
+
+# Raised epitaxial source/drain, abstracted. ASAP7 has no layer for the epi, so
+# the active region stands in for it: everything the gate does not cover is
+# where the epi grows, filling the gap between the fin tops and the trench
+# contacts above. Starting just inside the fin tops merges the two instead of
+# leaving coplanar faces that flicker in a render.
+Active:
+  index: 11
+  type: 0
+  z: 0.027
+  height: 0.042
+  cut_by:
+    - Gate
+
+Gate:
+  index: 7
+  type: 0
+  z: 0.03
+  height: 0.056
+  cut_by:
+    - GateCut
+  wrap_around:
+    layer: Fin
+    z_extend: 0.01  # extend this far below the fin base into the STI/substrate
+
+GateCut:
+  index: 10
+  type: 0
+  z: 0.03
+  height: 0.056
+
+SDT:
+  index: 88
+  type: 0
+  z: 0.069
+  height: 0.04
+
+LIG:
+  index: 16
+  type: 0
+  z: 0.087
+  height: 0.049
+
+LISD:
+  index: 17
+  type: 0
+  z: 0.109
+  height: 0.028
+
+V0:
+  index: 18
+  type: 0
+  z: 0.137
+  height: 0.019
+
+M1:
+  index: 19
+  type: 0
+  z: 0.156
+  height: 0.0396
+
+V1:
+  index: 21
+  type: 0
+  z: 0.1956
+  height: 0.0396
+
+M2:
+  index: 20
+  type: 0
+  z: 0.2352
+  height: 0.0396
+
+V2:
+  index: 25
+  type: 0
+  z: 0.2748
+  height: 0.036
+
+M3:
+  index: 30
+  type: 0
+  z: 0.3108
+  height: 0.0396
+
+V3:
+  index: 35
+  type: 0
+  z: 0.3504
+  height: 0.036
+
+M4:
+  index: 40
+  type: 0
+  z: 0.3864
+  height: 0.0528
+
+V4:
+  index: 45
+  type: 0
+  z: 0.4392
+  height: 0.048
+
+M5:
+  index: 50
+  type: 0
+  z: 0.4872
+  height: 0.0528
+
+V5:
+  index: 55
+  type: 0
+  z: 0.54
+  height: 0.048
+
+M6:
+  index: 60
+  type: 0
+  z: 0.588
+  height: 0.0704
+
+V6:
+  index: 65
+  type: 0
+  z: 0.6584
+  height: 0.064
+
+M7:
+  index: 70
+  type: 0
+  z: 0.7224
+  height: 0.0704
+
+V7:
+  index: 75
+  type: 0
+  z: 0.7928
+  height: 0.064
+
+M8:
+  index: 80
+  type: 0
+  z: 0.8568
+  height: 0.088
+
+V8:
+  index: 85
+  type: 0
+  z: 0.9448
+  height: 0.08
+
+M9:
+  index: 90
+  type: 0
+  z: 1.0248
+  height: 0.088

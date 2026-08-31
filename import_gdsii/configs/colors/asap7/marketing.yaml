@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: 2026 Jeff Hsu <jeffhsu3@gmail.com>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: Marketing
+description: Marketing color scheme
+layers:
+  # Silicon / Devices (enhanced but plausible)
+  NWell:
+    Base Color: [0.30, 0.40, 0.55, 0.55]
+
+  Fin:
+    Base Color: [0.25, 0.40, 0.22, 0.90]
+
+  # Raised epitaxial source/drain - warm amber-brown
+  Active:
+    Base Color: [0.60, 0.38, 0.22, 0.90]
+
+  # Metal gate - dark charcoal metallic
+  Gate:
+    Base Color: [0.18, 0.18, 0.16, 0.95]
+    Metallic: 0.85
+    Roughness: 0.3
+  # Gate cut - clean light oxide
+  GateCut:
+    Base Color: [0.80, 0.86, 0.90, 0.60]
+
+  # SDT - trench silicide, pale tungsten
+  SDT:
+    Base Color: [0.52, 0.54, 0.57, 1.0]
+    Metallic: 0.8
+
+  # LIG - cool dark tungsten (local interconnect to gate)
+  LIG:
+    Base Color: [0.33, 0.36, 0.42, 1.0]
+    Metallic: 0.8
+  # LISD - warm dark tungsten (local interconnect to source/drain)
+  LISD:
+    Base Color: [0.43, 0.38, 0.34, 1.0]
+    Metallic: 0.8
+
+  V0:
+    Base Color: [0.40, 0.42, 0.45, 1.0]
+    Metallic: 0.8
+
+  # Copper metal stack (warm gradient)
+  M1:
+    Base Color: [0.70, 0.44, 0.20, 1.0]
+    Metallic: 0.85
+    Roughness: 0.25
+  V1:
+    Base Color: [0.52, 0.36, 0.18, 1.0]
+    Metallic: 0.8
+
+  M2:
+    Base Color: [0.72, 0.46, 0.22, 1.0]
+    Metallic: 0.85
+    Roughness: 0.25
+  V2:
+    Base Color: [0.54, 0.38, 0.20, 1.0]
+    Metallic: 0.8
+
+  M3:
+    Base Color: [0.74, 0.48, 0.24, 1.0]
+    Metallic: 0.85
+    Roughness: 0.25
+  V3:
+    Base Color: [0.56, 0.40, 0.22, 1.0]
+    Metallic: 0.8
+
+  M4:
+    Base Color: [0.76, 0.51, 0.26, 1.0]
+    Metallic: 0.85
+    Roughness: 0.25
+  V4:
+    Base Color: [0.58, 0.42, 0.24, 1.0]
+    Metallic: 0.8
+
+  M5:
+    Base Color: [0.78, 0.54, 0.28, 1.0]
+    Metallic: 0.85
+    Roughness: 0.25
+  V5:
+    Base Color: [0.60, 0.44, 0.26, 1.0]
+    Metallic: 0.8
+
+  M6:
+    Base Color: [0.80, 0.57, 0.30, 1.0]
+    Metallic: 0.85
+    Roughness: 0.25
+  V6:
+    Base Color: [0.62, 0.46, 0.28, 1.0]
+    Metallic: 0.8
+
+  # Hero global metals (brighter copper finish)
+  M7:
+    Base Color: [0.82, 0.60, 0.32, 1.0]
+    Metallic: 0.85
+    Roughness: 0.2
+  V7:
+    Base Color: [0.64, 0.48, 0.30, 1.0]
+    Metallic: 0.8
+
+  M8:
+    Base Color: [0.84, 0.63, 0.34, 1.0]
+    Metallic: 0.85
+    Roughness: 0.2
+  V8:
+    Base Color: [0.66, 0.50, 0.32, 1.0]
+    Metallic: 0.8
+
+  M9:
+    Base Color: [0.86, 0.66, 0.36, 1.0]
+    Metallic: 0.85
+    Roughness: 0.2

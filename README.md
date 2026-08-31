@@ -28,6 +28,7 @@ BlenderGDS enables semiconductor layout visualization by importing GDSII files i
 * IHP Open PDK (SG13G2 & CMOS5L)
 * SkyWater SKY130 PDK
 * GlobalFoundries GF180MCU PDK
+* ASAP7 7nm FinFET PDK
 * SiEPIC EBeam PDK (silicon photonics)
 * Luxtelligence LNOI400 PDK (thin-film lithium niobate photonics)
 
